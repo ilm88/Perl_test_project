@@ -15,15 +15,15 @@ print "Введите имя пользователя для получения 
 while(my $line = <STDIN>) {   
     chomp($line); # отсекаем символ \n
     last if($line eq "exit");
-    repos_name($line)
+    parse_response_commits ($line)
    
 };
 sub uri_gen {
     if ( $#_ == 0){
-    my $name=shift;
-    my $uri = "https://api.github.com/users/$name/repos";
+        my $name=shift;
+        my $uri = "https://api.github.com/users/$name/repos";
     }
-    else { 
+    elsif ( $#_ == 1) { 
         my ($name, $repos)=@_;
         my $uri = "https://api.github.com/repos/$name/$repos/commits";
     };   
@@ -43,39 +43,39 @@ sub api_github {
 };
 sub get_repos_name {
     my $uri = shift;
-    my $response = api_github($uri);
     my $content;
     my @repos;
+    my $response = api_github($uri);
     $content=$response-> content;
     @repos=$content=~m/"node\_id":"\w*=","name":"(.*?)"/img;
 };
 sub get_repos_commits {
     my $uri = shift;
-    my $response = api_github($uri);
     my $content;
-    my $repos;
-    my @commit;
+    my @commits;
+    my $response = api_github($uri);
     $content=$response-> content;
-    @commit=$content=~m/"node\_id":"\w*=","name":"(.*?)"/img;
-    #use Data::Dumper;
-    #say Dumper \@repos;
-    #print @repos;
+    @commits=$content=~m/"commit":(\S*?)"\},"committer"/img;
+    
 };
-sub parse_response {
-1
+sub parse_response_commits {
+    my $line=shift;  
+    my $uri = uri_gen ($line);
+    my @repos = get_repos_name ($uri); 
+    my @response;
+    foreach my $repos (@repos){
+        my $uri = uri_gen ($line, $repos);
+        #say $uri; #test
+        @response = get_repos_commits ($uri);
+        #say Dumper \@response;
+        my $sumrep=$#response+1;
+        say "Репозиторий ", $repos, " коммитов ", $sumrep;
+    };   
 };
 sub repos_name { 
-my $in=shift;  
-my $uri = uri_gen ($in);
-my @repos = get_repos_name ($uri);  
-say Dumper \@repos; 
+    my $line=shift;  
+    my $uri = uri_gen ($line);
+    my @repos = get_repos_name ($uri);  
+    say Dumper \@repos; 
 };
-#sub print_response {
-#    my $response = shift;
-#    if ($response-> is_success){
-#        print $response-> content;
-#        }
-#    else{
-#       print $response-> error_as_HTML;
-#       }
-#};
+
