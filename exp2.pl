@@ -8,9 +8,10 @@ use IO::Socket;
 
 use LWP::UserAgent;
 use HTTP::Request;
+use LWP::Simple;
 
 my $url = "https://api.github.com/users/ilm88/repos";
-use LWP::Simple;
+
 my $content = get $url;
 die "Couldn't get $url" unless defined $content;
 # Далее что-нибудь делаем с $content, например:
